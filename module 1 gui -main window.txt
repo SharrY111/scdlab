@@ -1,0 +1,41 @@
+class FaceRecognizationSystem:
+    def __init__(self, root):
+        self.root = root
+        self.root.geometry("1460x1000+0+0")
+        self.root.title("Face Recognition System")
+
+        # Header image
+        header_img = Image.open(r"C:\Users\Win 10\Desktop\Face Recognization\images\1.png")
+        header_img = header_img.resize((1460, 100))
+        self.header_photo = ImageTk.PhotoImage(header_img)
+        header_label = Label(self.root, image=self.header_photo)
+        header_label.place(x=0, y=0, width=1460, height=100)
+
+        # Background image
+        background_img = Image.open(r"C:\Users\Win 10\Desktop\Face Recognization\images\2.png")
+        background_img = background_img.resize((1460, 900))
+        self.background_photo = ImageTk.PhotoImage(background_img)
+        background_label = Label(self.root, image=self.background_photo)
+        background_label.place(x=0, y=100, width=1460, height=900)
+
+        # Text label
+        title_lbl = Label(self.root, text="Presented To Sir. Waqas", font=("times new roman", 25, "bold"), bg="white",
+                          fg="red")
+        title_lbl.place(x=0, y=100, width=1460, height=40)
+
+        # Blocks
+
+        block1_img = Image.open(r"C:\Users\Win 10\Desktop\Face Recognization\images\1.png")
+        block1_img = block1_img.resize((240, 240))
+        self.block1_photo = ImageTk.PhotoImage(block1_img)
+        block1 = Button(self.root, image=self.block1_photo, cursor="hand2")
+        block1.place(x=100, y=200, width=240, height=240)
+
+        b11 = Button(self.root, text="Student Details", cursor="hand2")
+        b11.place(x=101, y=390, width=240, height=50)
+
+
+if __name__ == "__main__":
+    root = Tk()
+    obj = FaceRecognizationSystem(root)
+    root.mainloop()
