@@ -1,0 +1,105 @@
+from tkinter import *
+from PIL import Image, ImageTk
+import cv2
+import mysql.connector
+
+class FaceRecognizing:
+    def __init__(self, root):
+        self.root = root
+        self.root.geometry("1460x1000")
+        self.root.title("Face Recognition")
+        self.root.resizable(False, False)
+
+        # Header image
+        header_img = Image.open("images/1.png")
+        header_img = header_img.resize((1460, 100))
+        self.header_photo = ImageTk.PhotoImage(header_img)
+        header_label = Label(self.root, image=self.header_photo)
+        header_label.place(x=0, y=0, width=1460, height=100)
+
+        # Background image
+        background_img = Image.open("images/2.png")
+        background_img = background_img.resize((1460, 900))
+        self.background_photo = ImageTk.PhotoImage(background_img)
+        background_label = Label(self.root, image=self.background_photo)
+        background_label.place(x=0, y=100, width=1460, height=900)
+
+        # Text label
+        title_lbl = Label(self.root, text="Face Recognition", font=("times new roman", 35, "bold"), bg="white", fg="red")
+        title_lbl.place(x=10, y=100, width=1460, height=40)
+
+        # Button
+        btn = Button(self.root, text="Recognize Face", command=self.face_recog, width=35, font=("", 18, "bold"), bg="red",
+                     fg="white")
+        btn.place(x=0, y=550, width=1470, height=40)
+
+    def face_recog(self):
+        def draw_boundary(img, classifier, scaleFactor, minNeighbors, color, text, clf):
+            gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            features = classifier.detectMultiScale(gray_image, scaleFactor, minNeighbors)
+
+            for (x, y, w, h) in features:
+                cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
+                id, predict = clf.predict(gray_image[y:y + h, x:x + w])
+                confidence = int((100 * (1 - predict / 300)))
+
+                conn = mysql.connector.connect(host="localhost", user="root", password="pass11", database="face_recognization",
+                                       auth_plugin='mysql_native_password')
+                my_cursor = conn.cursor()
+
+                my_cursor.execute("select Name from srudent where std_id=" + str(id))
+                n = my_cursor.fetchone()
+                if n is not None:
+                    n = n[0]
+                else:
+                    n = "Unknown"
+
+                my_cursor.execute("select Roll_no from srudent where std_id=" + str(id))
+                r = my_cursor.fetchone()
+                if r is not None:
+                    r = r[0]
+                else:
+                    r = "Unknown"
+
+                my_cursor.execute("select Department from srudent where std_id=" + str(id))
+                d = my_cursor.fetchone()
+                if d is not None:
+                    d = d[0]
+                else:
+                    d = "Unknown"
+
+                if confidence > 77:
+                    cv2.putText(img, f"Roll: {r}", (x, y - 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    cv2.putText(img, f"Name: {n}", (x, y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    cv2.putText(img, f"Department: {d}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                else:
+                    cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                    cv2.putText(img, "Unknown Face", (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+        def recognize(img, clf, face_cascade):
+            coord = draw_boundary(img, face_cascade, 1.1, 10, (0, 0, 255), "Face", clf)
+
+            return img
+
+
+        face_cascade = cv2.CascadeClassifier(r"haarcascade_frontalface_default.xml")
+        clf = cv2.face_LBPHFaceRecognizer.create()
+        clf.read(r"classifier.xml")
+
+        video_cap = cv2.VideoCapture(0)
+
+        while True:
+            ret, img = video_cap.read()
+            img = recognize(img, clf, face_cascade)
+            cv2.imshow("Face Recognition", img)
+
+            if cv2.waitKey(1) == 13:
+                break
+
+        video_cap.release()
+        cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    root = Tk()
+    obj = FaceRecognizing(root)
+    root.mainloop()
