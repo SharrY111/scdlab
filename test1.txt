@@ -1,0 +1,39 @@
+# test_your_app.py
+
+import unittest
+from unittest.mock import patch, MagicMock
+from tkinter import Tk, Label
+from train import Train
+
+class TestTrainClass(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.root = Tk()
+        cls.train_instance = Train(cls.root)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.root.destroy()
+
+    def test_train_classifier(self):
+        # Mocking the cv2.face.LBPHFaceRecognizer_create method
+        with patch('cv2.face.LBPHFaceRecognizer_create') as mock_create:
+            # Mocking the train method of the classifier
+            mock_clf = MagicMock()
+            mock_create.return_value = mock_clf
+
+            with patch('cv2.imshow'), patch('cv2.waitKey') as mock_waitKey, patch('cv2.destroyAllWindows'):
+                # Mocking the messagebox.showinfo method
+                with patch('tkinter.messagebox.showinfo') as mock_showinfo:
+                    # Calling the train_classifier method
+                    self.train_instance.train_classifier()
+
+                    # Assertions
+                    mock_create.assert_called_once()
+                    mock_clf.train.assert_called_once()
+                    mock_clf.write.assert_called_once_with("clf.xml")
+                    mock_showinfo.assert_called_once_with("Result", "Training Dataset Completed!", parent=self.root)
+
+if __name__ == '__main__':
+    unittest.main()
